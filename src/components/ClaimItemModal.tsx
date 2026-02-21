@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Item } from '@/types';
+import { API_BASE_URL } from '@/lib/api';
 
 interface ClaimItemModalProps {
     isOpen: boolean;
@@ -37,8 +38,8 @@ export default function ClaimItemModal({ isOpen, onClose, item, type = 'contact'
 
         try {
             const endpoint = type === 'claim'
-                ? '/api/admin/claims'
-                : '/api/items/contact';
+                ? `${API_BASE_URL}/admin/claims`
+                : `${API_BASE_URL}/items/contact`;
 
             const payload = type === 'claim' ? {
                 foundItemId: item.id,

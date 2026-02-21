@@ -6,6 +6,7 @@ import { Shield, Lock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminDashboard from './AdminDashboard';
 import axios from 'axios';
+import { API_BASE_URL } from '@/lib/api';
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -27,7 +28,7 @@ export default function Admin() {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/admin/login', {
+      const response = await axios.post(`${API_BASE_URL}/admin/login`, {
         username,
         password
       });

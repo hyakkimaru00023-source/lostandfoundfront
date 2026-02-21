@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Tag } from "lucide-react";
 import { format } from "date-fns";
 import axios from 'axios';
+import { API_BASE_URL } from '@/lib/api';
 import { Item } from '@/types/item';
 import { toast } from 'sonner';
 
@@ -17,7 +18,7 @@ const ClaimedItems = () => {
             try {
                 // Fetch items with status='claimed'
                 // We use the existing query param 'status'
-                const response = await axios.get('/api/items?status=claimed');
+                const response = await axios.get(`${API_BASE_URL}/items?status=claimed`);
                 setItems(response.data);
             } catch (error) {
                 console.error('Failed to fetch claimed items:', error);

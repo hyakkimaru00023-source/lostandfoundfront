@@ -27,6 +27,7 @@ import { itemService } from '@/services/itemService';
 import { Item } from '@/types/item';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { API_BASE_URL } from '@/lib/api';
 
 interface Statistics {
   total: number;
@@ -63,7 +64,7 @@ export default function AdminDashboard() {
       };
 
       const [statsRes, items] = await Promise.all([
-        axios.get('/api/admin/stats', config),
+        axios.get(`${API_BASE_URL}/admin/stats`, config),
         itemService.getRecentItems(6)
       ]);
 

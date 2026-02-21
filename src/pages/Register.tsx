@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { API_BASE_URL } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Register() {
@@ -57,7 +58,7 @@ export default function Register() {
         setLoading(true);
 
         try {
-            const response = await axios.post('/api/users/register', {
+            const response = await axios.post(`${API_BASE_URL}/users/register`, {
                 name: formData.name,
                 email: formData.email,
                 password: formData.password

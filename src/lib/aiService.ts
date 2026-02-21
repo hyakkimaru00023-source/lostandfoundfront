@@ -1,4 +1,5 @@
 import { AIClassification, Item, Match, ChatbotResponse, UserFeedback, Notification } from '@/types';
+import { API_BASE_URL } from '@/lib/api';
 
 // Enhanced image classification using Backend API
 export async function classifyImage(imageUrl: string): Promise<AIClassification> {
@@ -14,7 +15,7 @@ export async function classifyImage(imageUrl: string): Promise<AIClassification>
 
     // Call Backend API
     // Note: strict-mode in React might cause double invocation, but that's fine for now
-    const apiResponse = await fetch('/api/ai/analyze-hybrid', {
+    const apiResponse = await fetch(`${API_BASE_URL}/ai/analyze-hybrid`, {
       method: 'POST',
       body: formData,
     });
@@ -328,7 +329,7 @@ export async function getChatbotResponse(userMessage: string): Promise<ChatbotRe
     formData.append('message', userMessage);
     // In a real app, we would send conversation history here as context
 
-    const response = await fetch('/api/ai/chat', {
+    const response = await fetch(`${API_BASE_URL}/ai/chat`, {
       method: 'POST',
       body: formData,
     });

@@ -14,6 +14,7 @@ import ChatBot from '@/components/ChatBot';
 import { Item, AIClassification } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { API_BASE_URL } from '@/lib/api';
 
 const CATEGORIES = {
   "Electronics": [
@@ -204,7 +205,7 @@ export default function ReportLost() {
       }
 
       // Call backend API
-      const apiResponse = await fetch('/api/items/lost', {
+      const apiResponse = await fetch(`${API_BASE_URL}/items/lost`, {
         method: 'POST',
         body: formDataToSend,
       });

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '@/lib/api';
 import { toast } from 'sonner';
 
 interface User {
@@ -62,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // In a real app, fetch /me endpoint. 
             // For now, we rely on stored data or re-login.
             // If we implement /me, we would do:
-            // const res = await axios.get('/api/users/me', { headers: { Authorization: `Bearer ${token}` } });
+            // const res = await axios.get(`${API_BASE_URL}/users/me`, { headers: { Authorization: `Bearer ${token}` } });
             // setUser(res.data);
         } catch (error) {
             console.error('Failed to refresh user', error);

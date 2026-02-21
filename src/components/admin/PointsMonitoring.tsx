@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Award, TrendingUp, Users, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { API_BASE_URL } from '@/lib/api';
 
 interface PointsStats {
     totalPoints: number;
@@ -48,7 +49,7 @@ export default function PointsMonitoring() {
             };
 
             // Use relative path to leverage Vite proxy
-            const response = await axios.get('/api/admin/points/stats', config);
+            const response = await axios.get(`${API_BASE_URL}/admin/points/stats`, config);
 
             console.log("📊 Points stats response:", response.data);
 
@@ -88,7 +89,7 @@ export default function PointsMonitoring() {
                 const config = {
                     headers: { Authorization: `Bearer ${token}` }
                 };
-                await axios.post(`/api/admin/users/${userId}/reset-points`, {}, config);
+                await axios.post(`${API_BASE_URL}/admin/users/${userId}/reset-points`, {}, config);
                 toast.success(`Points for ${userEmail} reset successfully.`);
                 loadPointsStats(); // Reload stats after reset
             } catch (error) {
@@ -105,7 +106,7 @@ export default function PointsMonitoring() {
                 const config = {
                     headers: { Authorization: `Bearer ${token}` }
                 };
-                await axios.post('/api/admin/users/reset-all-points', {}, config);
+                await axios.post(`${API_BASE_URL}/admin/users/reset-all-points`, {}, config);
                 toast.success('All points reset successfully.');
                 loadPointsStats();
             } catch (error) {

@@ -1,4 +1,5 @@
 import { YOLOResponse, DetectedObject } from '@/types/item';
+import { API_BASE_URL } from '@/lib/api';
 
 interface Detection {
   label?: string;
@@ -31,7 +32,7 @@ class YOLOService {
     formData.append('image', imageFile);
 
     try {
-      const response = await fetch('/api/ai/detect', {
+      const response = await fetch(`${API_BASE_URL}/ai/detect`, {
         method: 'POST',
         body: formData,
       });

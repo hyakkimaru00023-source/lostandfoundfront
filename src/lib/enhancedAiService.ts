@@ -1,4 +1,5 @@
 import { Item, Match, AIClassification, TrainingData, ModelVersion, SimilaritySearchResult } from '@/types';
+import { API_BASE_URL } from '@/lib/api';
 
 interface Detection {
   label?: string;
@@ -29,7 +30,7 @@ class EnhancedAIService {
       formData.append('image', file);
 
       // Call Node Proxy via relative path
-      const apiResponse = await fetch('/api/ai/detect', {
+      const apiResponse = await fetch(`${API_BASE_URL}/ai/detect`, {
         method: 'POST',
         body: formData
       });
@@ -278,7 +279,7 @@ class EnhancedAIService {
       // For now, let's assume the backend can handle it or we pass a placeholder.
       // Ideally, AIFeedbackInterface should pass the image URL.
 
-      const response = await fetch('/api/ai/feedback', {
+      const response = await fetch(`${API_BASE_URL}/ai/feedback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

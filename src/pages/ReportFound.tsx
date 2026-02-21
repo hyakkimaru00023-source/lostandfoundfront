@@ -13,6 +13,7 @@ import ChatBot from '@/components/ChatBot';
 import { Item, AIClassification } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { API_BASE_URL } from '@/lib/api';
 
 const CATEGORIES = {
   "Electronics": [
@@ -212,7 +213,7 @@ export default function ReportFound() {
       }
 
       // Call backend API
-      const apiResponse = await fetch('/api/items/found', {
+      const apiResponse = await fetch(`${API_BASE_URL}/items/found`, {
         method: 'POST',
         body: formDataToSend,
       });

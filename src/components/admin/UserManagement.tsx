@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Shield, ShieldAlert, User, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { API_BASE_URL } from '@/lib/api';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface User {
@@ -37,7 +38,7 @@ export default function UserManagement() {
         headers: { Authorization: `Bearer ${token}` }
       };
       // Use relative path to leverage Vite proxy
-      const response = await axios.get('/api/admin/users', config);
+      const response = await axios.get(`${API_BASE_URL}/admin/users`, config);
       setUsers(response.data);
     } catch (error) {
       console.error('Error loading users:', error);
@@ -53,7 +54,7 @@ export default function UserManagement() {
       const config = {
         headers: { Authorization: `Bearer ${token}` }
       };
-      await axios.patch(`/api/admin/users/${userId}`, { role: newRole }, config);
+      await axios.patch(`${API_BASE_URL}/admin/users/${userId}`, { role: newRole }, config);
       toast.success('User role updated');
       loadUsers();
     } catch (error) {
