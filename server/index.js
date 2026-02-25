@@ -117,16 +117,23 @@ apiRouter.post('/admin/login', async (req, res) => {
         const { username, password } = req.body;
         console.log('Admin login attempt:', { username, hasPassword: !!password });
 
-        if (username === 'admin' && password === 'admin123') {
-            res.json({
-                success: true,
-                token: 'admin-token-' + Date.now(),
-                user: { id: 'admin', email: 'admin@lostfound.com', role: 'admin' }
-            });
-        } else {
-            console.log('Admin login failed - invalid credentials');
-            res.status(410).json({ success: false, error: 'Invalid credentials' });
+        const { data: admin, error } = await supabase
+            .from('admin_users')
+            .select('*')
+            .eq('username', username)
+            .eq('password', password)
+            .single();
+
+        if (error || !admin) {
+            console.log('Admin login failed - invalid credentials or DB error');
+            return res.status(410).json({ success: false, error: 'Invalid credentials' });
         }
+
+        res.json({
+            success: true,
+            token: 'admin-token-' + Date.now(),
+            user: { id: admin.id, email: admin.email, role: admin.role || 'admin' }
+        });
     } catch (error) {
         console.error('Admin login error:', error);
         res.status(401).json({ success: false, error: error.message });

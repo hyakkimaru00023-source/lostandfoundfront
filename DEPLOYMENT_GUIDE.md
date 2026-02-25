@@ -77,18 +77,18 @@ ai_service/
 3. **Create Database Tables**
    Run this in Supabase SQL Editor:
    ```sql
-   -- Users table (extends Supabase auth)
-   CREATE TABLE profiles (
-     id UUID PRIMARY KEY REFERENCES auth.users(id),
+   -- 1. PROFILES TABLE
+   CREATE TABLE IF NOT EXISTS profiles (
+     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
      email TEXT,
      full_name TEXT,
-     created_at TIM   );
+     created_at TIMESTAMP DEFAULT NOW()
+   );
 
-   -- Items table
-   CREATE TABLE items (
-ESTAMP DEFAULT NOW()
+   -- 2. ITEMS TABLE
+   CREATE TABLE IF NOT EXISTS items (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     user_id UUID REFERENCES profiles(id),
+     user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
      title TEXT NOT NULL,
      description TEXT,
      category TEXT,
@@ -101,71 +101,46 @@ ESTAMP DEFAULT NOW()
      updated_at TIMESTAMP DEFAULT NOW()
    );
 
-   -- Claims table
-   CREATE TABLE claims (
+   -- 3. CLAIMS TABLE
+   CREATE TABLE IF NOT EXISTS claims (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     item_id UUID REFERENCES items(id),
-     user_id UUID REFERENCES profiles(id),
+     item_id UUID REFERENCES items(id) ON DELETE CASCADE,
+     user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+     claimer_email TEXT,
      status TEXT DEFAULT 'pending',
-     verification_details TEXT,
+     match_score FLOAT DEFAULT 0,
+     verification_notes TEXT,
      admin_notes TEXT,
      created_at TIMESTAMP DEFAULT NOW(),
      processed_at TIMESTAMP
    );
 
-   -- Feedback table
-   CREATE TABLE feedback (
+   -- 4. ADMIN_USERS TABLE
+   CREATE TABLE IF NOT EXISTS admin_users (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     user_id UUID REFERENCES profiles(id),
-     type TEXT,
-     content TEXT,
-     item_id UUID REFERENCES items(id),
-     rating INTEGER,
-     status TEXT DEFAULT 'pending',
+     username TEXT UNIQUE NOT NULL,
+     password TEXT NOT NULL,
+     email TEXT,
+     role TEXT DEFAULT 'admin',
      created_at TIMESTAMP DEFAULT NOW()
    );
 
-   -- AI Feedback table
-   CREATE TABLE ai_feedback (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     item_id UUID REFERENCES items(id),
-     user_id UUID REFERENCES profiles(id),
-     feedback_type TEXT,
-     correct_category TEXT,
-     notes TEXT,
-     created_at TIMESTAMP DEFAULT NOW()
-   );
+   -- 5. INSERT DEFAULT ADMIN (Username: admin, Password: admin123)
+   INSERT INTO admin_users (username, password, email, role)
+   VALUES ('admin', 'admin123', 'admin@lostfound.com', 'admin')
+   ON CONFLICT (username) DO UPDATE SET password = EXCLUDED.password;
 
-   -- Notifications table
-   CREATE TABLE notifications (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     user_id UUID REFERENCES profiles(id),
-     title TEXT,
-     message TEXT,
-     read BOOLEAN DEFAULT false,
-     created_at TIMESTAMP DEFAULT NOW()
-   );
-
-   -- Enable Row Level Security
+   -- 6. ENABLE RLS
    ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
    ALTER TABLE items ENABLE ROW LEVEL SECURITY;
    ALTER TABLE claims ENABLE ROW LEVEL SECURITY;
-   ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
-   ALTER TABLE ai_feedback ENABLE ROW LEVEL SECURITY;
-   ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 
-   -- Create policies
+   -- 7. CREATE POLICIES (Simplified)
    CREATE POLICY "Anyone can view items" ON items FOR SELECT USING (true);
-   CREATE POLICY "Anyone can create items" ON items FOR INSERT WITH CHECK (true);
-   CREATE POLICY "Users can update their items" ON items FOR UPDATE USING (auth.uid() = user_id);
-   CREATE POLICY "Anyone can view profiles" ON profiles FOR SELECT USING (true);
-   CREATE POLICY "Users can insert profiles" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
+   CREATE POLICY "Authenticated users can insert items" ON items FOR INSERT WITH CHECK (true);
    CREATE POLICY "Anyone can view claims" ON claims FOR SELECT USING (true);
-   CREATE POLICY "Anyone can create claims" ON claims FOR INSERT WITH CHECK (true);
-   CREATE POLICY "Anyone can view feedback" ON feedback FOR SELECT USING (true);
-   CREATE POLICY "Anyone can create feedback" ON feedback FOR INSERT WITH CHECK (true);
-   CREATE POLICY "Anyone can view notifications" ON notifications FOR SELECT USING (true);
-   CREATE POLICY "Users can insert notifications" ON notifications FOR INSERT WITH CHECK (true);
+   CREATE POLICY "Service role can read admin_users" ON admin_users FOR SELECT USING (true);
    ```
 
 ---
