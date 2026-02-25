@@ -9,30 +9,51 @@ export interface FeedbackData {
 
 export const feedbackService = {
     submitFeedback: async (data: FeedbackData) => {
-        const response = await fetch(`${API_URL}/feedback`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userName: data.name,
-                userEmail: data.email,
-                message: data.message,
-                type: data.type
-            }),
-        });
+        try {
+            const response = await fetch(`${API_URL}/feedback`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userName: data.name,
+                    userEmail: data.email,
+                    message: data.message,
+                    type: data.type
+                }),
+            });
 
-        if (!response.ok) {
-            throw new Error('Failed to submit feedback');
+            // Handle non-JSON responses
+            const text = await response.text();
+            if (!text) {
+                if (response.ok) {
+                    return { success: true };
+                }
+                throw new Error('Empty response from server');
+            }
+
+            try {
+                const json = JSON.parse(text);
+                if (!response.ok) {
+                    throw new Error(json.error || 'Failed to submit feedback');
+                }
+                return json;
+            } catch (parseError) {
+                if (response.ok) {
+                    return { success: true, raw: text };
+                }
+                throw new Error(text || 'Failed to parse server response');
+            }
+        } catch (error) {
+            console.error('Feedback submission error:', error);
+            throw error;
         }
-
-        return response.json();
     },
 
     getAllFeedback: async (token: string) => {
         const response = await fetch(`${API_URL}/feedback`, {
             headers: {
-                'Authorization': `Bearer ${token}` // Ensure admin token is passed
+                'Authorization': `Bearer ${token}`
             }
         });
 

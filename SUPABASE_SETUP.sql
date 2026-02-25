@@ -84,6 +84,48 @@ CREATE TABLE IF NOT EXISTS admin_users (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- 8. Create user_points table (gamification)
+CREATE TABLE IF NOT EXISTS user_points (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    points INTEGER DEFAULT 0,
+    level INTEGER DEFAULT 1,
+    total_items_reported INTEGER DEFAULT 0,
+    successful_matches INTEGER DEFAULT 0,
+    feedback_contributions INTEGER DEFAULT 0,
+    last_activity_at TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 9. Create training_samples table (auto-learning)
+CREATE TABLE IF NOT EXISTS training_samples (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    item_id UUID REFERENCES items(id) ON DELETE SET NULL,
+    user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+    image_url TEXT,
+    original_category TEXT,
+    corrected_category TEXT,
+    confidence_score FLOAT,
+    quality_score FLOAT,
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 10. Create model_versions table (auto-learning)
+CREATE TABLE IF NOT EXISTS model_versions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    version TEXT NOT NULL,
+    accuracy FLOAT,
+    precision_score FLOAT,
+    recall_score FLOAT,
+    f1_score FLOAT,
+    sample_count INTEGER DEFAULT 0,
+    training_date TIMESTAMP DEFAULT NOW(),
+    status TEXT DEFAULT 'training',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Insert admin user (username: admin, password: admin123)
 INSERT INTO admin_users (username, password, email, role)
 VALUES ('admin', 'admin123', 'admin@lostfound.com', 'admin')
@@ -100,6 +142,9 @@ ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_feedback ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_points ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_samples ENABLE ROW LEVEL SECURITY;
+ALTER TABLE model_versions ENABLE ROW LEVEL SECURITY;
 
 -- =====================================================
 -- CREATE POLICIES (Permissions)
@@ -134,6 +179,19 @@ CREATE POLICY "Users can insert notifications" ON notifications FOR INSERT WITH 
 
 -- Admin Users: Service role can read (for admin authentication)
 CREATE POLICY "Service role can read admin_users" ON admin_users FOR SELECT USING (true);
+
+-- User Points: Users can view their own points
+CREATE POLICY "Users can view own points" ON user_points FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own points" ON user_points FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own points" ON user_points FOR UPDATE USING (auth.uid() = user_id);
+
+-- Training Samples: Everyone can view, authenticated users can insert
+CREATE POLICY "Anyone can view training_samples" ON training_samples FOR SELECT USING (true);
+CREATE POLICY "Anyone can insert training_samples" ON training_samples FOR INSERT WITH CHECK (true);
+
+-- Model Versions: Everyone can view, service role can insert
+CREATE POLICY "Anyone can view model_versions" ON model_versions FOR SELECT USING (true);
+CREATE POLICY "Service role can manage model_versions" ON model_versions FOR ALL USING (true);
 
 -- =====================================================
 -- SUCCESS MESSAGE
