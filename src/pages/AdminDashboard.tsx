@@ -26,8 +26,7 @@ import {
 import { itemService } from '@/services/itemService';
 import { Item } from '@/types/item';
 import { toast } from 'sonner';
-import axios from 'axios';
-import { API_BASE_URL } from '@/lib/api';
+import { adminService } from '@/lib/adminService';
 
 interface Statistics {
   total: number;
@@ -58,29 +57,31 @@ export default function AdminDashboard() {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('adminToken');
-      const config = {
-        headers: { Authorization: `Bearer ${token}` }
-      };
+      const stats = await adminService.getDashboardStats();
 
-      const [statsRes, items] = await Promise.all([
-        axios.get(`${API_BASE_URL}/admin/stats`, config),
-        itemService.getRecentItems(6)
-      ]);
+      // Map AdminDashboardStats to current page's Statistics interface
+      setStatistics({
+        total: stats.totalItems,
+        lost: stats.totalItems - stats.activeItems, // Rough estimation for legacy UI
+        found: stats.activeItems,
+        resolved: stats.matchedItems,
+        active: stats.activeItems,
+        recentItems: stats.recentActivity.length,
+        categories: [],
+        claims: {
+          pending: stats.pendingClaims,
+          approved: stats.matchedItems, // Best fit for legacy UI
+          rejected: 0
+        }
+      });
 
-      setStatistics(statsRes.data);
+      // Also fetch items for the list
+      const items = await itemService.getRecentItems(6);
       setRecentItems(items);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
-        toast.error('Session expired. Please login again.');
-        localStorage.removeItem('adminToken');
-        delete axios.defaults.headers.common['Authorization'];
-        navigate('/admin');
-        return;
-      }
       toast.error('Failed to load dashboard data');
-      // Fallback to mock data for demo if backend not ready
+
       if (!statistics) {
         setStatistics({
           total: 0, lost: 0, found: 0, resolved: 0, active: 0, recentItems: 0,

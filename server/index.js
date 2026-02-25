@@ -386,6 +386,7 @@ apiRouter.post('/feedback', async (req, res) => {
 
 // --- ADMIN ROUTES ---
 apiRouter.get('/admin/stats', async (req, res) => {
+    console.log('📊 Admin stats requested at:', new Date().toISOString());
     try {
         // Get counts from various tables
         const [itemsResult, claimsResult, usersResult, feedbackResult] = await Promise.all([
@@ -463,6 +464,7 @@ apiRouter.post('/admin/claims/:id/process', async (req, res) => {
     }
 });
 
+// Mount apiRouter before other general routes
 app.use('/api', apiRouter);
 
 // ==================== HEALTH CHECK ====================
