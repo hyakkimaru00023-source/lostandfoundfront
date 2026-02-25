@@ -28,10 +28,15 @@ export default function Admin() {
     setLoading(true);
 
     try {
+      console.log('Attempting login to:', `${API_BASE_URL}/admin/login`);
+      console.log('Credentials:', { username, password });
+
       const response = await axios.post(`${API_BASE_URL}/admin/login`, {
         username,
         password
       });
+
+      console.log('Login response:', response.data);
 
       if (response.data.success && response.data.token) {
         localStorage.setItem('adminToken', response.data.token);
@@ -40,10 +45,21 @@ export default function Admin() {
         setIsAuthenticated(true);
         toast.success('Admin login successful');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed:', error);
-      toast.error('Invalid credentials');
-    } finally {
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+
+      // Show more specific error message
+      if (error.response?.status === 410) {
+        toast.error('Invalid username or password');
+      } else if (error.response?.status === 404) {
+        toast.error('API endpoint not found - check VITE_API_URL');
+      } else if (error.code === 'ERR_NETWORK') {
+        toast.error('Network error - check if backend is running');
+      } else {
+        toast.error(error.response?.data?.error || 'Login failed');
+      }
       setLoading(false);
     }
   };
