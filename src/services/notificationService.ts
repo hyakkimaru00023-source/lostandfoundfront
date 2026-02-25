@@ -1,6 +1,5 @@
 import { Notification } from '@/types';
-
-const API_BASE_URL = '/api';
+import { API_BASE_URL } from '@/lib/api';
 
 /**
  * Notification Service - Manages notifications via backend API

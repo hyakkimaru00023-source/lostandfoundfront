@@ -1,4 +1,4 @@
-const API_URL = '/api';
+import { API_BASE_URL } from '@/lib/api';
 
 export interface FeedbackData {
     name?: string;
@@ -10,7 +10,7 @@ export interface FeedbackData {
 export const feedbackService = {
     submitFeedback: async (data: FeedbackData) => {
         try {
-            const response = await fetch(`${API_URL}/feedback`, {
+            const response = await fetch(`${API_BASE_URL}/feedback`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ export const feedbackService = {
     },
 
     getAllFeedback: async (token: string) => {
-        const response = await fetch(`${API_URL}/feedback`, {
+        const response = await fetch(`${API_BASE_URL}/feedback`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -65,7 +65,7 @@ export const feedbackService = {
     },
 
     updateStatus: async (id: number | string, status: string, token: string) => {
-        const response = await fetch(`${API_URL}/feedback/${id}/status`, {
+        const response = await fetch(`${API_BASE_URL}/feedback/${id}/status`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',

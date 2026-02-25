@@ -8,29 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { CheckCircle, XCircle, Clock, Eye, MessageSquare, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
-import axios from 'axios';
+import { adminService } from '@/lib/adminService';
 
-interface Claim {
-  id: number;
-  lost_item_id: number;
-  found_item_id: number;
-  claimer_id: string;
-  claimer_email: string;
-  status: 'pending' | 'approved' | 'rejected';
-  match_score: number;
-  verification_notes: string;
-  created_at: string;
-  lost_item_title: string;
-  found_item_title: string;
-  lost_item_image?: string;
-  found_item_image?: string;
-}
+// ... interface Claim ...
 
 export default function ClaimsManagement() {
-  const [claims, setClaims] = useState<Claim[]>([]);
+  const [claims, setClaims] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
-  const [processingClaim, setProcessingClaim] = useState<Claim | null>(null);
+  const [processingClaim, setProcessingClaim] = useState<any | null>(null);
   const [adminNotes, setAdminNotes] = useState('');
 
   useEffect(() => {
@@ -40,13 +26,13 @@ export default function ClaimsManagement() {
   const loadClaims = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('adminToken');
-      const config = {
-        headers: { Authorization: `Bearer ${token}` }
-      };
-
-      const response = await axios.get(`/admin/claims?status=${filter}`, config);
-      setClaims(response.data);
+      // Use adminService which handles the API URL correctly
+      const allClaims = await adminService.getClaims();
+      if (filter === 'all') {
+        setClaims(allClaims);
+      } else {
+        setClaims(allClaims.filter((c: any) => c.status === filter));
+      }
     } catch (error) {
       console.error('Error loading claims:', error);
       toast.error('Failed to load claims');
@@ -55,22 +41,14 @@ export default function ClaimsManagement() {
     }
   };
 
-  const handleProcessClaim = async (claimId: number, decision: 'approved' | 'rejected', notes: string) => {
+  const handleProcessClaim = async (claimId: string, decision: 'approved' | 'rejected', notes: string) => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const config = {
-        headers: { Authorization: `Bearer ${token}` }
-      };
-
-      await axios.post(`/admin/claims/${claimId}/process`, {
-        decision,
-        notes
-      }, config);
-
+      // Use adminService for status updates
+      await adminService.updateClaimStatus(claimId, decision, notes);
       toast.success(`Claim ${decision} successfully`);
-      setProcessingClaim(null); // Clear processing claim
-      setAdminNotes(''); // Clear notes
-      loadClaims(); // Reload to update list
+      setProcessingClaim(null);
+      setAdminNotes('');
+      loadClaims();
     } catch (error) {
       console.error('Error processing claim:', error);
       toast.error('Failed to process claim');

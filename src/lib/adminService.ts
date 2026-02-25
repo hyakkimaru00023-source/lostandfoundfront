@@ -1,8 +1,7 @@
 import { ClaimRequest, AdminDashboardStats, AdminActivity, ItemManagementFilter, UserManagementData, AISystemMetrics, NotificationMetrics } from '@/types/admin';
 import { Item, Notification, UserStats } from '@/types';
+import { API_BASE_URL } from './api';
 import { enhancedStorage } from './enhancedStorage';
-
-const API_URL = '/api';
 
 class AdminService {
   private readonly CLAIMS_KEY = 'admin_claims';
@@ -12,7 +11,8 @@ class AdminService {
   // Fetch wrapper with error handling
   private async fetchAPI(endpoint: string, options?: RequestInit) {
     try {
-      const response = await fetch(`${API_URL}${endpoint}`, {
+      const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      const response = await fetch(`${API_BASE_URL}${cleanEndpoint}`, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
