@@ -82,11 +82,11 @@ ai_service/
      id UUID PRIMARY KEY REFERENCES auth.users(id),
      email TEXT,
      full_name TEXT,
-     created_at TIMESTAMP DEFAULT NOW()
-   );
+     created_at TIM   );
 
    -- Items table
    CREATE TABLE items (
+ESTAMP DEFAULT NOW()
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
      user_id UUID REFERENCES profiles(id),
      title TEXT NOT NULL,
@@ -172,24 +172,11 @@ ai_service/
 
 ### Phase 3: Render Setup
 
-You need to deploy **3 services** on Render:
+**IMPORTANT: Deploy Backend FIRST, then Frontend!**
 
-#### 3.1 Frontend (Static Site)
+---
 
-| Setting | Value |
-|---------|-------|
-| Type | **Static Site** |
-| Build Command | `npm run build` |
-| Publish Directory | `dist` |
-| Environment Variables | `VITE_API_URL` = `https://your-backend.onrender.com/api` |
-
-**🚨 IMPORTANT: Redirects/Rewrites (For SPA Routing)**
-To prevent 404 errors when refreshing pages like `/admin`, you **must** add this rule in the Render Dashboard under **Redirects/Rewrites**:
-- **Source**: `/*`
-- **Destination**: `/index.html`
-- **Action**: `Rewrite`
-
-#### 3.2 Backend API (Web Service)
+#### 3.1 Backend API (Web Service) - DEPLOY THIS FIRST!
 
 | Setting | Value |
 |---------|-------|
@@ -197,27 +184,51 @@ To prevent 404 errors when refreshing pages like `/admin`, you **must** add this
 | Runtime | **Node** |
 | Build Command | `cd server && npm install` |
 | Start Command | `cd server && npm start` |
-| Environment | `Node` version 18+ |
+| Environment | **Node** version 18+ |
 
-**Environment Variables for Backend:**
+**Environment Variables for Backend (REQUIRED):**
 ```
 PORT=3000
-DB_HOST=db.xxxx.supabase.co
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=YOUR_SUPABASE_PASSWORD
-DB_NAME=postgres
-SUPABASE_URL=YOUR_SUPABASE_URL
-SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
-AI_SERVICE_URL=http://ai-service:5000
+SUPABASE_URL=YOUR_SUPABASE_URL_HERE
+SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY_HERE
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY_HERE
+AI_SERVICE_URL=YOUR_AI_SERVICE_URL_HERE
 ```
 
-#### 3.3 AI Service (Background Worker)
+**⚠️ IMPORTANT: After deploying, copy your backend URL**
+- Example: `https://lost-found-api.onrender.com`
+- You'll need this for the Frontend!
+
+---
+
+#### 3.2 Frontend (Static Site) - DEPLOY AFTER BACKEND
 
 | Setting | Value |
 |---------|-------|
-| Type | **Background Worker** |
+| Type | **Static Site** |
+| Build Command | `npm run build` |
+| Publish Directory | `dist` |
+
+**Environment Variables for Frontend (CRITICAL!):**
+```
+VITE_API_URL=https://YOUR-BACKEND-NAME.onrender.com/api
+```
+
+**⚠️⚠️⚠️ CRITICAL: You MUST add `/api` at the end!**
+
+Example:
+- If your backend URL is: `https://lost-found-api.onrender.com`
+- Then VITE_API_URL must be: `https://lost-found-api.onrender.com/api`
+
+If you forget `/api`, admin login will fail with "API endpoint not found" error!
+
+---
+
+#### 3.3 AI Service (Optional - for Image Detection)
+
+| Setting | Value |
+|---------|-------|
+| Type | **Web Service** |
 | Runtime | **Python** |
 | Build Command | `cd ai_service && pip install -r requirements.txt` |
 | Start Command | `cd ai_service && python main.py` |
@@ -225,21 +236,18 @@ AI_SERVICE_URL=http://ai-service:5000
 
 ---
 
-### Phase 4: Environment Variables Summary
+### Phase 4: Verify Admin Login Works
 
-#### Frontend (.env)
-```
-VITE_API_URL=https://your-backend.onrender.com/api
-```
+1. Go to your Frontend URL
+2. Navigate to `/admin`
+3. Login with:
+   - Username: `admin`
+   - Password: `admin123`
 
-#### Backend (server/.env)
-```
-PORT=3000
-SUPABASE_URL=https://xxxx.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-AI_SERVICE_URL=https://your-ai-service.onrender.com
-```
+If login fails, check:
+1. Browser Console (F12) for error messages
+2. Backend logs in Render
+3. Make sure VITE_API_URL includes `/api`
 
 ---
 
@@ -278,6 +286,7 @@ npm run build
 The backend code is now complete and ready for deployment! Follow the steps above to:
 1. Push to GitHub
 2. Set up Supabase
-3. Deploy to Render
+3. Deploy Backend FIRST
+4. Deploy Frontend SECOND (with correct VITE_API_URL!)
 
 If you encounter any issues, check the Render logs for error messages.
