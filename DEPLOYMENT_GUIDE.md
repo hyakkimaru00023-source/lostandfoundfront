@@ -195,6 +195,10 @@ SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY_HERE
 AI_SERVICE_URL=YOUR_AI_SERVICE_URL_HERE
 ```
 
+**Example with real URLs:**
+- AI Service: `https://lost-found-ai-z622.onrender.com`
+- AI_SERVICE_URL: `https://lost-found-ai-z622.onrender.com`
+
 **⚠️ IMPORTANT: After deploying, copy your backend URL**
 - Example: `https://lost-found-api.onrender.com`
 - You'll need this for the Frontend!
@@ -213,6 +217,10 @@ AI_SERVICE_URL=YOUR_AI_SERVICE_URL_HERE
 ```
 VITE_API_URL=https://YOUR-BACKEND-NAME.onrender.com/api
 ```
+
+**Example with real URLs:**
+- Backend: `https://lost-found-backend-i3rw.onrender.com`
+- Frontend VITE_API_URL: `https://lost-found-backend-i3rw.onrender.com/api`
 
 **⚠️⚠️⚠️ CRITICAL: You MUST add `/api` at the end!**
 
