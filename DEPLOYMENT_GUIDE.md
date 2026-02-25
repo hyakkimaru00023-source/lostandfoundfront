@@ -181,7 +181,13 @@ You need to deploy **3 services** on Render:
 | Type | **Static Site** |
 | Build Command | `npm run build` |
 | Publish Directory | `dist` |
-| Environment Variables | `VITE_API_URL` = Your Backend URL |
+| Environment Variables | `VITE_API_URL` = `https://your-backend.onrender.com/api` |
+
+**🚨 IMPORTANT: Redirects/Rewrites (For SPA Routing)**
+To prevent 404 errors when refreshing pages like `/admin`, you **must** add this rule in the Render Dashboard under **Redirects/Rewrites**:
+- **Source**: `/*`
+- **Destination**: `/index.html`
+- **Action**: `Rewrite`
 
 #### 3.2 Backend API (Web Service)
 
@@ -223,7 +229,7 @@ AI_SERVICE_URL=http://ai-service:5000
 
 #### Frontend (.env)
 ```
-VITE_API_URL=https://your-backend.onrender.com
+VITE_API_URL=https://your-backend.onrender.com/api
 ```
 
 #### Backend (server/.env)
