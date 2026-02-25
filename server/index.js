@@ -39,7 +39,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
     storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         const allowedTypes = /jpeg|jpg|png|gif|webp/;
         const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -62,7 +62,7 @@ const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:5000';
 // ==================== AUTH ROUTES ====================
 
 // Register
-app.post('/api/auth/register', async (req, res) => {
+app.post('/auth/register', async (req, res) => {
     try {
         const { email, password, full_name } = req.body;
 
@@ -74,7 +74,6 @@ app.post('/api/auth/register', async (req, res) => {
 
         if (error) throw error;
 
-        // Create profile
         if (data.user) {
             await supabase.from('profiles').insert({
                 id: data.user.id,
@@ -90,7 +89,7 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // Login
-app.post('/api/auth/login', async (req, res) => {
+app.post('/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
@@ -108,7 +107,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // Get current user
-app.get('/api/auth/me', async (req, res) => {
+app.get('/auth/me', async (req, res) => {
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader) {
@@ -132,10 +131,30 @@ app.get('/api/auth/me', async (req, res) => {
     }
 });
 
+// Admin login (simplified)
+app.post('/admin/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        // Simple admin check - in production use proper auth
+        if (username === 'admin' && password === 'admin123') {
+            res.json({
+                success: true,
+                token: 'admin-token-' + Date.now(),
+                user: { id: 'admin', email: 'admin@lostfound.com', role: 'admin' }
+            });
+        } else {
+            res.status(401).json({ success: false, error: 'Invalid credentials' });
+        }
+    } catch (error) {
+        res.status(401).json({ success: false, error: error.message });
+    }
+});
+
 // ==================== ITEMS ROUTES ====================
 
 // Get all items (with filters)
-app.get('/api/items', async (req, res) => {
+app.get('/items', async (req, res) => {
     try {
         const { type, category, status, search, limit = 50, offset = 0 } = req.query;
 
@@ -161,7 +180,7 @@ app.get('/api/items', async (req, res) => {
 });
 
 // Get recent items
-app.get('/api/items/recent', async (req, res) => {
+app.get('/items/recent', async (req, res) => {
     try {
         const { limit = 10 } = req.query;
 
@@ -180,7 +199,7 @@ app.get('/api/items/recent', async (req, res) => {
 });
 
 // Get single item
-app.get('/api/items/:id', async (req, res) => {
+app.get('/items/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -200,7 +219,7 @@ app.get('/api/items/:id', async (req, res) => {
 });
 
 // Report lost item
-app.post('/api/items/lost', upload.single('image'), async (req, res) => {
+app.post('/items/lost', upload.single('image'), async (req, res) => {
     try {
         const { title, description, category, location, user_id, contact_email } = req.body;
         const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
@@ -226,7 +245,7 @@ app.post('/api/items/lost', upload.single('image'), async (req, res) => {
 });
 
 // Report found item
-app.post('/api/items/found', upload.single('image'), async (req, res) => {
+app.post('/items/found', upload.single('image'), async (req, res) => {
     try {
         const { title, description, category, location, user_id, contact_email } = req.body;
         const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
@@ -252,7 +271,7 @@ app.post('/api/items/found', upload.single('image'), async (req, res) => {
 });
 
 // Update item
-app.put('/api/items/:id', async (req, res) => {
+app.put('/items/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
@@ -273,7 +292,7 @@ app.put('/api/items/:id', async (req, res) => {
 });
 
 // Delete item
-app.delete('/api/items/:id', async (req, res) => {
+app.delete('/items/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -293,13 +312,12 @@ app.delete('/api/items/:id', async (req, res) => {
 // ==================== AI ROUTES ====================
 
 // Object detection
-app.post('/api/ai/detect', upload.single('image'), async (req, res) => {
+app.post('/ai/detect', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No image provided' });
         }
 
-        // Call AI service
         const formData = new FormData();
         formData.append('image', req.file.buffer, {
             filename: req.file.originalname,
@@ -330,13 +348,12 @@ app.post('/api/ai/detect', upload.single('image'), async (req, res) => {
 });
 
 // Hybrid AI analysis
-app.post('/api/ai/analyze-hybrid', upload.single('image'), async (req, res) => {
+app.post('/ai/analyze-hybrid', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No image provided' });
         }
 
-        // Call AI service for hybrid analysis
         const formData = new FormData();
         formData.append('image', req.file.buffer, {
             filename: req.file.originalname,
@@ -369,11 +386,10 @@ app.post('/api/ai/analyze-hybrid', upload.single('image'), async (req, res) => {
 });
 
 // AI Chat
-app.post('/api/ai/chat', async (req, res) => {
+app.post('/ai/chat', async (req, res) => {
     try {
         const { message, context } = req.body;
 
-        // Simple mock chatbot response
         const responses = {
             'lost': 'I can help you report a lost item. Please provide details about what you lost.',
             'found': 'Thank you for finding an item! You can report it as found using our form.',
@@ -400,7 +416,7 @@ app.post('/api/ai/chat', async (req, res) => {
 });
 
 // AI Feedback
-app.post('/api/ai/feedback', async (req, res) => {
+app.post('/ai/feedback', async (req, res) => {
     try {
         const { item_id, user_id, feedback_type, correct_category, notes } = req.body;
 
@@ -423,7 +439,7 @@ app.post('/api/ai/feedback', async (req, res) => {
 
 // ==================== NOTIFICATIONS ROUTES ====================
 
-app.get('/api/notifications/:userId', async (req, res) => {
+app.get('/notifications/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
         const { unreadOnly } = req.query;
@@ -448,7 +464,7 @@ app.get('/api/notifications/:userId', async (req, res) => {
     }
 });
 
-app.put('/api/notifications/:id/read', async (req, res) => {
+app.put('/notifications/:id/read', async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -467,9 +483,44 @@ app.put('/api/notifications/:id/read', async (req, res) => {
     }
 });
 
+app.get('/notifications/:userId/unread-count', async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const { count, error } = await supabase
+            .from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .eq('read', false);
+
+        if (error) throw error;
+
+        res.json(count || 0);
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.put('/notifications/:userId/read-all', async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const { error } = await supabase
+            .from('notifications')
+            .update({ read: true })
+            .eq('user_id', userId);
+
+        if (error) throw error;
+
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // ==================== FEEDBACK ROUTES ====================
 
-app.post('/api/feedback', async (req, res) => {
+app.post('/feedback', async (req, res) => {
     try {
         const { user_id, type, content, item_id, rating } = req.body;
 
@@ -490,7 +541,7 @@ app.post('/api/feedback', async (req, res) => {
     }
 });
 
-app.get('/api/feedback', async (req, res) => {
+app.get('/feedback', async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('feedback')
@@ -505,9 +556,29 @@ app.get('/api/feedback', async (req, res) => {
     }
 });
 
+app.patch('/feedback/:id/status', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        const { data, error } = await supabase
+            .from('feedback')
+            .update({ status })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        res.json({ success: true, data });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // ==================== ADMIN ROUTES ====================
 
-app.get('/api/admin/claims', async (req, res) => {
+app.get('/admin/claims', async (req, res) => {
     try {
         const { status } = req.query;
 
@@ -524,7 +595,7 @@ app.get('/api/admin/claims', async (req, res) => {
     }
 });
 
-app.post('/api/admin/claims/:id/process', async (req, res) => {
+app.post('/admin/claims/:id/process', async (req, res) => {
     try {
         const { id } = req.params;
         const { decision, admin_notes } = req.body;
@@ -549,7 +620,7 @@ app.post('/api/admin/claims/:id/process', async (req, res) => {
 });
 
 // Admin stats
-app.get('/api/admin/stats', async (req, res) => {
+app.get('/admin/stats', async (req, res) => {
     try {
         const { data: items } = await supabase.from('items').select('*');
         const { data: users } = await supabase.from('profiles').select('*');
@@ -572,7 +643,7 @@ app.get('/api/admin/stats', async (req, res) => {
 
 // ==================== HEALTH CHECK ====================
 
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -581,12 +652,12 @@ app.get('/', (req, res) => {
         message: 'Lost & Found API',
         version: '1.0.0',
         endpoints: [
-            '/api/auth/*',
-            '/api/items/*',
-            '/api/ai/*',
-            '/api/notifications/*',
-            '/api/feedback/*',
-            '/api/admin/*'
+            '/auth/*',
+            '/items/*',
+            '/ai/*',
+            '/notifications/*',
+            '/feedback/*',
+            '/admin/*'
         ]
     });
 });
@@ -597,10 +668,9 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Start server
 app.listen(PORT, () => {
     console.log(`🚀 Lost & Found API running on port ${PORT}`);
-    console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`📡 Health check: http://localhost:${PORT}/health`);
 });
 
 export default app;
