@@ -385,6 +385,56 @@ apiRouter.post('/feedback', async (req, res) => {
 });
 
 // --- ADMIN ROUTES ---
+apiRouter.get('/admin/stats', async (req, res) => {
+    try {
+        // Get counts from various tables
+        const [itemsResult, claimsResult, usersResult, feedbackResult] = await Promise.all([
+            supabase.from('items').select('*', { count: 'exact', head: true }),
+            supabase.from('claims').select('*', { count: 'exact', head: true }),
+            supabase.from('profiles').select('*', { count: 'exact', head: true }),
+            supabase.from('feedback').select('*', { count: 'exact', head: true })
+        ]);
+
+        // Get items by status
+        const { data: allItems } = await supabase.from('items').select('status, type');
+        const lostCount = allItems?.filter(i => i.type === 'lost').length || 0;
+        const foundCount = allItems?.filter(i => i.type === 'found').length || 0;
+        const resolvedCount = allItems?.filter(i => i.status === 'claimed' || i.status === 'resolved').length || 0;
+        const activeCount = allItems?.filter(i => i.status === 'open' || i.status === 'active').length || 0;
+
+        // Get claims by status
+        const { data: allClaims } = await supabase.from('claims').select('status');
+        const pendingC = allClaims?.filter(c => c.status === 'pending').length || 0;
+        const approvedC = allClaims?.filter(c => c.status === 'approved').length || 0;
+        const rejectedC = allClaims?.filter(c => c.status === 'rejected').length || 0;
+
+        // Get recent items
+        const { data: recentItems } = await supabase
+            .from('items')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(10);
+
+        res.json({
+            total: itemsResult.count || 0,
+            lost: lostCount,
+            found: foundCount,
+            resolved: resolvedCount,
+            active: activeCount,
+            recentItems: recentItems || [],
+            categories: [],
+            claims: {
+                pending: pendingC,
+                approved: approvedC,
+                rejected: rejectedC
+            }
+        });
+    } catch (error) {
+        console.error('Admin stats error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 apiRouter.get('/admin/claims', async (req, res) => {
     try {
         const { status } = req.query;
