@@ -334,13 +334,35 @@ apiRouter.put('/notifications/:id/read', async (req, res) => {
 // --- FEEDBACK ROUTES ---
 apiRouter.post('/feedback', async (req, res) => {
     try {
-        const { user_id, type, content, item_id, rating } = req.body;
-        const { data, error } = await supabase.from('feedback').insert({
-            user_id, type, content, item_id, rating, status: 'pending'
-        }).select().single();
+        // Support both frontend and legacy payload formats
+        const {
+            user_id,
+            type,
+            content,
+            item_id,
+            rating,
+            // New frontend payload fields
+            userName,
+            userEmail,
+            message
+        } = req.body;
+
+        // Map frontend payload to database fields
+        const feedbackData = {
+            user_id: user_id || userEmail || null,
+            type: type || 'other',
+            content: content || message || '',
+            item_id: item_id || null,
+            rating: rating || null,
+            status: 'pending'
+        };
+
+        const { data, error } = await supabase.from('feedback').insert(feedbackData).select().single();
+
         if (error) throw error;
         res.status(201).json({ success: true, data });
     } catch (error) {
+        console.error('Feedback error:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
@@ -409,3 +431,4 @@ app.listen(PORT, () => {
 });
 
 export default app;
+
