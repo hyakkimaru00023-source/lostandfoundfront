@@ -147,36 +147,63 @@ ai_service/
 
 ### Phase 3: Render Setup
 
-**IMPORTANT: Deploy Backend FIRST, then Frontend!**
+**🚨 CRITICAL ORDER OF OPERATIONS:**
+1.  **FIRST**: Deploy the **AI Service** (to get its URL).
+2.  **SECOND**: Deploy the **Backend API** (using the AI URL).
+3.  **THIRD**: Deploy the **Frontend** (using the Backend URL).
 
 ---
 
-#### 3.1 Backend API (Web Service) - DEPLOY THIS FIRST!
+#### 3.0 HOW TO GET THE AI_SERVICE_URL (READ THIS FIRST!)
 
-| Setting | Value |
-|---------|-------|
-| Type | **Web Service** |
-| Runtime | **Node** |
-| Build Command | `cd server && npm install` |
-| Start Command | `cd server && npm start` |
-| Environment | **Node** version 18+ |
+If you don't have this URL yet, it's because **Render needs to create it for you**.
 
-**Environment Variables for Backend (REQUIRED):**
-```
-PORT=3000
-SUPABASE_URL=YOUR_SUPABASE_URL_HERE
-SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY_HERE
-SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY_HERE
-AI_SERVICE_URL=YOUR_AI_SERVICE_URL_HERE
-```
+1.  **GO TO RENDER**: Click **"New +"** -> **"Web Service"**.
+2.  **ROOT DIRECTORY**: Set this to `ai_service`.
+3.  **CLICK CREATE**: Once you click the "Create Web Service" button at the bottom...
+4.  **LOOK AT THE TOP LEFT**: Render will immediately show you a link under the service name.
+    -   It looks like: `https://lost-found-ai-wxyz.onrender.com`
+5.  **COPY THIS LINK**: This is your `AI_SERVICE_URL`. 
 
-**Example with real URLs:**
-- AI Service: `https://lost-found-ai-z622.onrender.com`
-- AI_SERVICE_URL: `https://lost-found-ai-z622.onrender.com`
+**Now you can go and create your Backend service and paste this link into the settings!**
 
-**⚠️ IMPORTANT: After deploying, copy your backend URL**
-- Example: `https://lost-found-api.onrender.com`
-- You'll need this for the Frontend!
+---
+
+#### 3.1 Backend API (Web Service) - [Detailed Step-by-Step]
+
+Follow these exact steps to get your backend running:
+
+1.  **Open Render Dashboard**: Go to [dashboard.render.com](https://dashboard.render.com) and log in.
+2.  **Create New Service**:
+    -   Click the blue **"New +"** button at the top right.
+    -   Select **"Web Service"**.
+3.  **Connect Repository**:
+    -   Find your GitHub repository (e.g., `lost-and-found`) and click **"Connect"**.
+4.  **Configure Basics**:
+    -   **Name**: `lost-found-backend` (or your choice).
+    -   **Region**: Select the one closest to you (e.g., `Singapore` or `Oregon`).
+    -   **Branch**: `main`.
+    -   **Root Directory**: ⚠️ **CRITICAL**: Set this to `server`.
+    -   **Runtime**: `Node`.
+5.  **Build & Start Commands**:
+    -   **Build Command**: `npm install`
+    -   **Start Command**: `npm start`
+    -   **Instance Type**: `Free`.
+6.  **Add Environment Variables**:
+    -   Scroll down and click **"Advanced"** -> **"Add Environment Variable"**.
+    -   Add these one by one:
+        -   `PORT`: `3000`
+        -   `SUPABASE_URL`: (Your URL from Supabase)
+        -   `SUPABASE_ANON_KEY`: (Your Anon key from Supabase)
+        -   `SUPABASE_SERVICE_ROLE_KEY`: (Your Service Role key from Supabase)
+        -   `AI_SERVICE_URL`: (The URL of your AI Service, e.g., `https://lost-found-ai-z622.onrender.com`)
+7.  **Finalize**:
+    -   Click **"Create Web Service"** at the bottom.
+    -   Wait for the logs to say `🚀 Lost & Found API running on port 3000`.
+
+**⚠️ IMPORTANT: Copy your Backend URL**
+Once the deploy is successful, look at the top left (under the name). You will see a link like `https://lost-found-backend.onrender.com`. 
+**COPY THIS NOW** — you need it for the Frontend!
 
 ---
 
@@ -209,13 +236,24 @@ If you forget `/api`, admin login will fail with "API endpoint not found" error!
 
 #### 3.3 AI Service (Optional - for Image Detection)
 
-| Setting | Value |
-|---------|-------|
-| Type | **Web Service** |
-| Runtime | **Python** |
-| Build Command | `cd ai_service && pip install -r requirements.txt` |
-| Start Command | `cd ai_service && python main.py` |
-| Environment | **Python 3.9+** |
+**Follow these steps to get your AI_SERVICE_URL:**
+
+1.  **Create New Service**: In Render, click **"New +"** -> **"Web Service"**.
+2.  **Connect Repository**: Select your same GitHub repo.
+3.  **Configure Basics**:
+    -   **Name**: `lost-found-ai-service`
+    -   **Root Directory**: ⚠️ **Set to `ai_service`**
+    -   **Runtime**: `Python`
+    -   **Build Command**: `pip install -r requirements.txt`
+    -   **Start Command**: `python main.py`
+4.  **Finish**: Click **"Create Web Service"**.
+
+**Where is the URL?**
+As soon as the page loads, look right under the service name `lost-found-ai-service`. You will see a link like:
+`https://lost-found-ai-service-abcd.onrender.com`
+
+**THIS IS YOUR AI_SERVICE_URL!**
+Copy it and paste it into your **Backend API's** environment variables.
 
 ---
 
