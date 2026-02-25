@@ -45,7 +45,7 @@ export default function ClaimsManagement() {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      const response = await axios.get(`/api/admin/claims?status=${filter}`, config);
+      const response = await axios.get(`/admin/claims?status=${filter}`, config);
       setClaims(response.data);
     } catch (error) {
       console.error('Error loading claims:', error);
@@ -62,7 +62,7 @@ export default function ClaimsManagement() {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      await axios.post(`/api/admin/claims/${claimId}/process`, {
+      await axios.post(`/admin/claims/${claimId}/process`, {
         decision,
         notes
       }, config);
